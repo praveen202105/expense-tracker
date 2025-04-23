@@ -1,4 +1,8 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💰 Next.js Expense Tracker
+
+This is a Next.js project bootstrapped with create-next-app. It helps you track income and expenses with features like Google Authentication, PDF export, and insightful visualizations.
+
+🔗 [Live Demo](https://praveen-expense-tracker.vercel.app/) https://praveen-expense-tracker.vercel.app/
 
 ## Getting Started
 
@@ -13,24 +17,33 @@ pnpm dev
 # or
 bun dev
 ```
+## Environment Variables
+To run the app, create a .env.local file in the root directory and add the following:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```bash
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_nextauth_secret
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Features
+🔐 Google Authentication – Secure login via NextAuth.js
 
-## Learn More
+➕ Add Transactions – Quickly log income and expenses
 
-To learn more about Next.js, take a look at the following resources:
+📅 Date Filtering – Filter records by date range
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+📄 Monthly PDF Export – One-click PDF generation using jsPDF
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+📊 Insights Dashboard – Visual breakdown of income vs expenses
 
-## Deploy on Vercel
+## Tech Stack
+Frontend: Next.js, React, Tailwind CSS
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Auth: NextAuth.js
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+PDF Generation: jsPDF
+
+Deployment: Vercel
