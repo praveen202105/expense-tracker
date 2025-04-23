@@ -10,7 +10,7 @@ export function getUserIdFromRequest(req: NextRequest): string | null {
     const token = authHeader.split(' ')[1];
     try {
         const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
-        console.log("ddd ", decoded)
+        // console.log("ddd ", decoded)
         return decoded.userId;
     } catch {
         return null;

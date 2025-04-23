@@ -36,3 +36,4 @@ export async function DELETE(req: NextRequest) {
     await Expense.findByIdAndDelete(id);
     return NextResponse.json({ message: 'Deleted' });
 }
+
