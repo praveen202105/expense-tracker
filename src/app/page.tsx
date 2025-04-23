@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "../components/ui/button"
-import { ArrowRight, BarChart3, CreditCard, DollarSign, PieChart } from 'lucide-react'
+import { ArrowRight, BarChart3, CreditCard, IndianRupee, PieChart } from 'lucide-react'
 import Cookies from "js-cookie"
 
 export default function Home() {
@@ -24,7 +24,7 @@ export default function Home() {
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-background via-background to-background/80">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-xl">
+          <div className="ml-8 flex items-center gap-2 font-bold text-xl">
             <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">Expense</span>
             <span>Manager</span>
           </div>
@@ -82,7 +82,7 @@ export default function Home() {
                         <div className="rounded-lg bg-green-50 dark:bg-green-900/20 p-4 transition-all duration-300 hover:shadow-md">
                           <div className="flex items-center gap-2">
                             <div className="rounded-full bg-green-100 dark:bg-green-800/30 p-2">
-                              <DollarSign className="h-4 w-4 text-green-600 dark:text-green-400" />
+                              <IndianRupee className="h-4 w-4 text-green-600 dark:text-green-400" />
                             </div>
                             <p className="text-sm text-muted-foreground">Income</p>
                           </div>

@@ -100,7 +100,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                ${expenseData.income.toFixed(2)}
+              ₹{expenseData.income.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">All time income</p>
             </CardContent>
@@ -119,7 +119,7 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">${expenseData.expense.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">₹{expenseData.expense.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground mt-1">All time expenses</p>
             </CardContent>
           </Card>
@@ -140,7 +140,7 @@ export default function DashboardPage() {
               <div
                 className={`text-2xl font-bold ${balance >= 0 ? "text-violet-600 dark:text-violet-400" : "text-red-600 dark:text-red-400"}`}
               >
-                ${balance.toFixed(2)}
+                ₹{balance.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Current balance</p>
             </CardContent>

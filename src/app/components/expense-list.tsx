@@ -117,7 +117,7 @@ export function ExpenseList({ expenses, onDeleteExpense, isLoading }: ExpenseLis
                           : "text-red-600 dark:text-red-400"
                       }
                     >
-                      ${expense.amount.toFixed(2)}
+                      ₹{expense.amount.toFixed(2)}
                     </span>
                   </TableCell>
                   <TableCell>

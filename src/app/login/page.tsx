@@ -45,19 +45,24 @@ export default function LoginPage() {
       });
   
       const data = await response.json();
-      Cookies.set("token", data.token, { expires: 7 })
+      Cookies.set("token", data.token, {
+        expires: 7, 
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        sameSite: 'Lax', // Helps protect against CSRF
+      });
+      
       if (!response.ok) {
         throw new Error(data.message || "Invalid email or password");
       }
 
 
-      toast("Login successful!", {
+      toast.success("Login successful!", {
         description: "Welcome back!",
       });
   
       router.push("/dashboard");
     } catch (error) {
-      toast("Login failed", {
+      toast.error("Login failed", {
         description: error instanceof Error ? error.message : "Something went wrong",
       });
     } finally {
@@ -148,7 +153,7 @@ export default function LoginPage() {
             </CardContent>
             <CardFooter>
               <Button
-                className="w-full rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-violet-500/25"
+                className="w-full mt-4 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-violet-500/25"
                 type="submit"
                 disabled={isLoading}
               >

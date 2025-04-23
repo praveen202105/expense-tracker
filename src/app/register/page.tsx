@@ -11,6 +11,7 @@ import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
 import { toast } from "sonner"
 import { ArrowLeft, User, Mail, Lock, Eye, EyeOff } from "lucide-react"
+import Cookies from "js-cookie"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -47,17 +48,28 @@ export default function RegisterPage() {
         },
         body: JSON.stringify(formData),
       })
-  
+   
       if (!response.ok) {
         const { message } = await response.json()
+        console.log("mm ",message);
+        
         throw new Error(message || "Registration failed")
       }
-      toast("Account created!")
+      const data=await response.json();
+      Cookies.set('token', data.token, {
+        expires: 7, // Expires in 7 days
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        sameSite: 'Lax',
+      });
+
+      toast.success("Account created!");
     
   
-      router.push("/login")
-    } catch (error) {
-      toast("Registration failed")
+      router.push("/dashboard")
+  
+    } catch (error) { 
+      
+      toast.error("Registration failed")
     
     } finally {
       setIsLoading(false)
@@ -178,7 +190,7 @@ export default function RegisterPage() {
             </CardContent>
             <CardFooter>
               <Button
-                className="w-full rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-violet-500/25"
+                className="w-full mt-4 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-violet-500/25"
                 type="submit"
                 disabled={isLoading}
               >

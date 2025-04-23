@@ -1,55 +1,63 @@
-import type { Expense } from "./types"
-import { formatDate } from "./utils"
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import type { Expense } from './types';
+import { formatDate } from './utils';
 
 export async function generatePDF(
     expenses: Expense[],
     onProgress: (progress: number) => void
 ): Promise<void> {
     try {
+        const doc = new jsPDF();
+
         // Calculate totals
         const totalIncome = expenses
-            .filter((expense) => expense.category === "Income")
-            .reduce((sum, expense) => sum + expense.amount, 0)
+            .filter((expense) => expense.category === 'Income')
+            .reduce((sum, expense) => sum + expense.amount, 0);
 
         const totalExpenses = expenses
-            .filter((expense) => expense.category === "Expense")
-            .reduce((sum, expense) => sum + expense.amount, 0)
+            .filter((expense) => expense.category === 'Expense')
+            .reduce((sum, expense) => sum + expense.amount, 0);
 
-        const balance = totalIncome - totalExpenses
+        const balance = totalIncome - totalExpenses;
 
-        // Create a simple CSV string for demonstration
-        let csvContent = "Date,Description,Category,Amount\n"
-        const totalSteps = expenses.length + 1 // Add 1 for totals line
+        // Prepare table data
+        const tableData = expenses.map((expense) => [
+            formatDate(expense.createdAt),
+            expense.description || '',
+            expense.category,
+            expense.amount.toFixed(2),
+        ]);
 
-        expenses.forEach((expense, index) => {
-            csvContent += `${formatDate(expense.createdAt)},${expense.description || ""},${expense.category
-                },${expense.amount.toFixed(2)}\n`
+        // Define table headers
+        const headers = [['Date', 'Description', 'Category', 'Amount']];
 
-            // Update progress after each row
-            onProgress(Math.floor(((index + 1) / expenses.length) * 100))
-        })
+        // Add title
+        doc.setFontSize(18);
+        doc.text('Expense Report', 14, 22);
+
+        // Add table
+        autoTable(doc, {
+            head: headers,
+            body: tableData,
+            startY: 30,
+        });
 
         // Add totals
-        csvContent += `\nTotal Income,${totalIncome.toFixed(2)}\n`
-        csvContent += `Total Expenses,${totalExpenses.toFixed(2)}\n`
-        csvContent += `Balance,${balance.toFixed(2)}\n`
+        const finalY = (doc as any).lastAutoTable.finalY || 30;
+        doc.setFontSize(12);
+        doc.setFont('Roboto', 'bold');
+        doc.text(`Total Income: ${totalIncome.toFixed(2)}`, 14, finalY + 10);
+        doc.text(`Total Expenses: ${totalExpenses.toFixed(2)}`, 14, finalY + 16);
+        doc.text(`Balance: ${balance.toFixed(2)}`, 14, finalY + 22);
 
-        // Update progress to 100% after finishing the CSV creation
-        onProgress(100)
+        // Save the PDF
+        doc.save(`expense-report-${new Date().toISOString().split('T')[0]}.pdf`);
 
-        // Create a blob and download it
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.href = url
-        link.setAttribute("download", `expense-report-${new Date().toISOString().split("T")[0]}.csv`)
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-
-        console.log("PDF generation would happen here in a real app")
+        // Update progress to 100%
+        onProgress(100);
     } catch (error) {
-        console.error("Error generating PDF:", error)
-        throw new Error("Failed to generate PDF")
+        console.error('Error generating PDF:', error);
+        throw new Error('Failed to generate PDF');
     }
 }

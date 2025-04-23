@@ -4,7 +4,9 @@ import { getCurrentUser } from "./auth"
 const BASE_URL = "api/expenses"
 
 function getAuthHeader() {
-    const token = localStorage.getItem("token")
+    const match = document.cookie.match(/(?:^|; )token=([^;]*)/)
+    const token = match ? decodeURIComponent(match[1]) : null
+
     return token ? { Authorization: `Bearer ${token}` } : {}
 }
 

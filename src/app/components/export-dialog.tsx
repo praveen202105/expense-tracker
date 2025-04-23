@@ -1,6 +1,6 @@
 "use client"
 
-import { SetStateAction, useState } from "react"
+import {useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
@@ -10,7 +10,8 @@ import { Progress } from "@/components/ui/progress"
 import { toast } from "sonner"
 import { generatePDF } from "../lib/pdf-generator"
 import type { Expense } from "../lib/types"
-import { Download, Calendar } from "lucide-react"
+import { Download, Calendar,Loader2 } from "lucide-react"
+import Cookies from "js-cookie"
 
 interface ExportDialogProps {
   open: boolean
@@ -23,6 +24,9 @@ export function ExportDialog({ open, onOpenChange, expenses }: ExportDialogProps
   const [year, setYear] = useState<string>(new Date().getFullYear().toString())
   const [isExporting, setIsExporting] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [currentStep, setCurrentStep] = useState("")
+
+
 
   const months = [
     { value: "0", label: "January" },
@@ -47,82 +51,137 @@ export function ExportDialog({ open, onOpenChange, expenses }: ExportDialogProps
     label: (currentYear - i).toString(),
   }))
 
-  const handleExport = async () => {
-    try {
-      setIsExporting(true)
-      setProgress(0)
 
-      // Filter expenses by selected month and year
-      let filteredExpenses = [...expenses]
+const handleExport = async () => {
+  try {
+    setIsExporting(true);
+    setProgress(0);
+    setCurrentStep("Initializing...")
+    // Construct start and end dates based on selected month and year
+    const startDate = new Date(Number(year), month === 'all' ? 0 : Number(month), 1);
+    const endDate = new Date(Number(year), month === 'all' ? 11 : Number(month), 31);
 
-      if (month !== "all") {
-        filteredExpenses = filteredExpenses.filter((expense) => {
-          const expenseDate = new Date(expense.createdAt)
-          return (
-            expenseDate.getMonth() === Number.parseInt(month) && expenseDate.getFullYear() === Number.parseInt(year)
-          )
-        })
-      } else {
-        // If "All Months" is selected, just filter by year
-        filteredExpenses = filteredExpenses.filter((expense) => {
-          const expenseDate = new Date(expense.createdAt)
-          return expenseDate.getFullYear() === Number.parseInt(year)
-        })
+    // Format dates as 'YYYY-MM-DD'
+    const formattedStartDate = startDate.toISOString().split('T')[0];
+    const formattedEndDate = endDate.toISOString().split('T')[0];
+
+     // Step 2: Fetching data - 10%
+
+     setProgress(10)
+
+     setCurrentStep("Fetching expense data...")
+
+     toast.info("Fetching expense data...")
+
+
+
+     // Add a small delay to show the fetching state
+
+     await new Promise((resolve) => setTimeout(resolve, 500))
+
+
+    // Fetch filtered expenses from the API
+    const response = await fetch(
+      `/api/expenses/date-range?startDate=${formattedStartDate}&endDate=${formattedEndDate}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${Cookies.get('token')}`,
+        },
       }
+    );
 
-      if (filteredExpenses.length === 0) {
-        // toast({
-        //   title: "No transactions found",
-        //   description: "There are no transactions for the selected period.",
-        //   variant: "destructive",
-        // })
-        toast("No transactions found", {
-            description: "There are no transactions for the selected period."
-          })
-        setIsExporting(false)
-        return
-      }
-
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval)
-            return 90
-          }
-          return prev + 10
-        })
-      }, 200)
-
-      // Generate PDF with progress callback
-      await generatePDF(filteredExpenses, (progressValue) => {
-        if (progressValue === 100) {
-          clearInterval(progressInterval);
-        }
-        setProgress(progressValue);
-      });
-
-      setProgress(100)
-
-      toast("Export successful", {
-        description: "Your transactions have been exported successfully."
-      })
-
-      // Close dialog after a short delay
-      setTimeout(() => {
-        onOpenChange(false)
-        setIsExporting(false)
-        setProgress(0)
-      }, 1000)
-    } catch (error) {
-       toast("Export failed", {
-        description: "Something went wrong."
-      })
-      setIsExporting(false)
-      setProgress(0)
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to fetch expenses');
     }
-  }
+    // Step 3: Processing data - 30%
 
+    setProgress(30)
+
+    setCurrentStep("Processing expense data...")
+    const { expenses: filteredExpenses } = await response.json();
+
+
+    if (filteredExpenses.length === 0) {
+      toast.error('No transactions found', {
+        description: 'There are no transactions for the selected period.',
+      });
+      setIsExporting(false);
+      return;
+    }
+
+      // Step 4: Preparing PDF - 40%
+
+      setProgress(40)
+
+      setCurrentStep("Preparing PDF document...")
+
+      toast.info("Preparing PDF document...")
+        // Add a small delay to simulate PDF preparation
+
+        await new Promise((resolve) => setTimeout(resolve, 300))
+
+
+
+        // Step 5: Building PDF - 50-90% (handled by the generatePDF function)
+  
+        setProgress(50)
+  
+        setCurrentStep("Building PDF document...")
+  
+        toast.info("Building PDF document...")
+  
+  
+  
+       // Calculate how many progress updates we need based on data size
+       const dataSize = filteredExpenses.length
+       const progressStep = dataSize > 100 ? 1 : dataSize > 50 ? 2 : 5
+ 
+       // Generate PDF with custom progress callback
+       await generatePDF(filteredExpenses, (progressValue) => {
+         // Map the progress from the PDF generator (0-100) to our range (50-90)
+         const scaledProgress = 50 + progressValue * 0.4
+         setProgress(Math.min(90, scaledProgress))
+ 
+         // Update step text based on progress
+         if (progressValue < 30) {
+           setCurrentStep("Processing expense data...")
+         } else if (progressValue < 60) {
+           setCurrentStep("Generating tables...")
+         } else if (progressValue < 90) {
+           setCurrentStep("Finalizing document...")
+         } else {
+           setCurrentStep("Saving PDF file...")
+         }
+       })
+ 
+       // Step 6: Finalizing - 100%
+       setProgress(100)
+       setCurrentStep("Export completed!")
+       toast.success("Export successful", {
+         description: "Your transactions have been exported successfully.",
+       })
+ 
+       // Close dialog after a short delay
+       setTimeout(() => {
+         onOpenChange(false)
+         setIsExporting(false)
+         setProgress(0)
+         setCurrentStep("")
+       }, 1500)
+     } catch (error) {
+       console.error("Export failed:", error)
+       toast.error("Export failed", {
+         description: error instanceof Error ? error.message : "Something went wrong.",
+       })
+       setIsExporting(false)
+       setProgress(0)
+       setCurrentStep("")
+     }
+   }
+ 
   const getMonthYearLabel = () => {
     const selectedMonth = months.find((m) => m.value === month)?.label
     return month === "all" ? `All months in ${year}` : `${selectedMonth} ${year}`
@@ -181,11 +240,20 @@ export function ExportDialog({ open, onOpenChange, expenses }: ExportDialogProps
 
           {isExporting && (
             <div className="space-y-2 mt-2">
-              <div className="flex justify-between text-sm">
-                <span>Generating PDF...</span>
-                <span>{progress}%</span>
+              <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center gap-2">
+                  {progress < 100 && <Loader2 className="h-3 w-3 animate-spin text-violet-600" />}
+                  <span>{currentStep}</span>
+                </div>
+                <span className="font-mono">{progress}%</span>
               </div>
-              <Progress value={progress} className="h-2 bg-violet-100 dark:bg-violet-800/30" />
+              <Progress
+                value={progress}
+                className="h-2 bg-violet-100 dark:bg-violet-800/30"
+                style={{
+                  transition: "all 0.3s ease",
+                }}
+              />
             </div>
           )}
 

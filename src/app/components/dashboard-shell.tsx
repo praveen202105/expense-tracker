@@ -3,10 +3,21 @@
 import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
-import { User, Settings, LogOut, Menu, X } from "lucide-react"
+import { User, Settings, LogOut, Menu, X,Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { useRouter } from 'next/navigation';
+
+import Cookies from 'js-cookie';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface DashboardShellProps {
   children?: React.ReactNode
@@ -14,6 +25,31 @@ interface DashboardShellProps {
 
 export function DashboardShell({ children }: DashboardShellProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+
+  const openLogoutDialog = () => {
+    setShowLogoutDialog(true)
+  }
+  
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true); 
+      setShowLogoutDialog(false)
+
+
+      Cookies.remove('token');
+      setTimeout(() => {
+        router.push('/');
+      }, 1000);
+    } catch (error) {
+      console.error('Logout failed:', error);
+      setIsLoggingOut(false); 
+   
+    }
+  };
 
   return (
     <div className="ml-8 flex min-h-screen flex-col bg-gradient-to-b from-background via-background to-violet-50 dark:to-violet-950/20">
@@ -38,16 +74,16 @@ export function DashboardShell({ children }: DashboardShellProps) {
                   JD
                 </AvatarFallback>
               </Avatar>
-              <Link href="/logout">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-full hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span className="sr-only">Logout</span>
-                </Button>
-              </Link>
+              
+              <Button
+                    variant="ghost"
+                    className="flex w-full justify-start items-center gap-2 text-sm font-medium hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+                    onClick={openLogoutDialog}
+                    disabled={isLoggingOut}
+                  >
+                    {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+                    Logout
+                  </Button>
             </div>
           </nav>
 
@@ -90,14 +126,21 @@ export function DashboardShell({ children }: DashboardShellProps) {
                     <Settings className="h-4 w-4" />
                     Settings
                   </Link>
-                  <Link
-                    href="/logout"
-                    className="flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+                    onClick={openLogoutDialog}
+                    disabled={isLoggingOut} // Disable the button during logout
                   >
-                    <LogOut className="h-4 w-4" />
-                    Logout
-                  </Link>
+                   {isLoggingOut ? (
+                      // Display a spinner or loading indicator
+                      <span className="loader"></span>
+                    ) : (
+                      <LogOut className="h-4 w-4" />
+                    )}
+                    <span>Logout</span>
+                    </Button>
                 </nav>
               </div>
             </SheetContent>
@@ -120,6 +163,40 @@ export function DashboardShell({ children }: DashboardShellProps) {
           </p>
         </div>
       </footer>
+            {/* Logout Confirmation Dialog */}
+            <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent className="sm:max-w-[425px] border-violet-100 dark:border-violet-800/30 shadow-lg shadow-violet-500/5">
+          <DialogHeader>
+            <DialogTitle>Confirm Logout</DialogTitle>
+            <DialogDescription>Are you sure you want to logout from your account?</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0 mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowLogoutDialog(false)}
+              className="rounded-lg border-violet-200 hover:bg-violet-100/50 dark:border-violet-800 dark:hover:bg-violet-800/20 transition-all duration-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="rounded-lg ml-4 bg-red-500 hover:bg-red-600 text-white transition-all duration-300"
+            >
+              {isLoggingOut ? (
+                <span className="flex items-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging out...
+                </span>
+              ) : (
+                "Yes, Logout"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog> 
     </div>
   )
 }
