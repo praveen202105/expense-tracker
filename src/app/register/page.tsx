@@ -116,8 +116,9 @@ export default function RegisterPage() {
 
         const data = await res.json()
         const { token } = data
+        console.log("tt ",token);
 
-        Cookies.set("authToken", token, {
+        Cookies.set("token", token, {
           expires: 7,
           secure: process.env.NODE_ENV === "production",
           sameSite: "Lax",

@@ -24,17 +24,8 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        const token = jwt.sign(
-            {
-                id: user._id,
-                email: user.email,
-                role: user.role,
-                name,
-                profilePic: picture,
-            },
-            process.env.JWT_SECRET!,
-            { expiresIn: '7d' }
-        );
+
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, { expiresIn: '7d' });
 
         return NextResponse.json({
             user: {

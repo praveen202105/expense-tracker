@@ -5,7 +5,7 @@ import { NextRequest } from 'next/server';
 
 export function getUserIdFromRequest(req: NextRequest): string | null {
     const authHeader = req.headers.get('authorization');
-    console.log("aa ", authHeader)
+    // console.log("aa ", authHeader)
     if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
     const token = authHeader.split(' ')[1];
     try {

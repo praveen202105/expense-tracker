@@ -116,7 +116,7 @@ export default function LoginPage() {
         const data = await res.json();
         const { token } = data;
   
-        Cookies.set("authToken", token, {
+        Cookies.set("token", token, {
           expires: 7,
           secure: process.env.NODE_ENV === "production",
           sameSite: "Lax",
@@ -134,62 +134,7 @@ export default function LoginPage() {
       setGoogleLoading(false);
     }
   };
-//   const handleGoogleLogin = async (response: CredentialResponse) => {
-//     setGoogleLoading(true);
-//     setError(null);
-
-//     try {
-//       if (response.credential) {
-//         // Handle the response if credential is available
-//         const credential = response.credential;
-//         console.log("Google Login Success", credential);
-
-//         const decoded: DecodedToken = jwtDecode<DecodedToken>(
-//           credential
-//         );
-        
-
-//         console.log("Decoded User Info:", decoded);
-
-//         const userProfile = {
-//           name: decoded.name,
-//           email: decoded.email,
-//           picture: decoded.picture,
-//         };
-// console.log("user ",userProfile);
-
-//         // const { data } = await axios.post("/api/auth/google", userProfile);
-//         const res = await fetch("/api/auth/google", {
-//           method: "POST",
-//           headers: {
-//             "Content-Type": "application/json",
-//           },
-//           body: JSON.stringify(userProfile),
-//         });
-  
-//         if (!res.ok) {
-//           const errorData = await res.json();
-//           throw new Error(errorData.message || "Failed to authenticate with Google");
-//         }
-  
-//         const data = await res.json();
-//         const { token } = data;
-//         console.log("dd ",token);
-        
-//         // const { user, token } = data;
-//         // Cookies.set("Token", token, { expires: 7 }); // 30 days
-      
-//       } else {
-//         console.error("Google Login Failed: No credential found");
-//         setError("Google Sign-In Failed");
-//       }
-//     } catch (error) {
-//       console.error("Error decoding token:", error);
-//       setError("Failed to sign in with Google");
-//       setGoogleLoading(false);
-//     }
-//   };
-  return (
+return (
     <div className="container flex min-h-screen w-screen flex-col items-center justify-center bg-gradient-to-b from-background via-background to-violet-50 dark:to-violet-950/20">
       <a
         href="/"
