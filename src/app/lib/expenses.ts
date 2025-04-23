@@ -10,7 +10,10 @@ function getAuthHeader() {
     return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
-export async function getUserExpenses(): Promise<ExpenseApiResponse> {
+export async function getUserExpenses(
+    startDate?: Date,
+    endDate?: Date
+): Promise<ExpenseApiResponse> {
     try {
         const authHeader = getAuthHeader(); // Get the auth header
         const headers: HeadersInit = {
@@ -18,7 +21,14 @@ export async function getUserExpenses(): Promise<ExpenseApiResponse> {
             ...(authHeader.Authorization ? { Authorization: authHeader.Authorization } : {}),
         };
 
-        const res = await fetch(BASE_URL, {
+        // Construct query parameters
+        const params = new URLSearchParams();
+        if (startDate) params.append("startDate", startDate.toISOString());
+        if (endDate) params.append("endDate", endDate.toISOString());
+
+        const url = `${BASE_URL}/date-range?${params.toString()}`;
+
+        const res = await fetch(url, {
             method: "GET",
             headers,
         });

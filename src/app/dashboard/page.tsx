@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Button } from "../../components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 import { ExpenseForm } from "../components/expense-form"
 import { ExpenseList } from "../components/expense-list"
@@ -10,12 +10,15 @@ import { DashboardHeader } from "../components/dashboard-header"
 import { DashboardShell } from "../components/dashboard-shell"
 import { getUserExpenses } from "../lib/expenses"
 import type { Expense, ExpenseApiResponse } from "../lib/types"
-import { Download, Plus, BarChart3, IndianRupee, CreditCard, Wallet } from "lucide-react"
-import { generatePDF } from "../lib/pdf-generator"
+import { Download, Plus, BarChart3, IndianRupee, CreditCard, Wallet , Calendar, RefreshCw} from "lucide-react"
 import { motion } from "framer-motion"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { ExportDialog } from "../components/export-dialog"
+import { DatePicker } from "../components//date-picker"
 
+import { format } from "date-fns"
+
+import { toast } from "sonner"
 export default function DashboardPage() {
   const [expenseData, setExpenseData] = useState<ExpenseApiResponse>({
     income: 0,
@@ -26,21 +29,73 @@ export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
 
+ // Get first day of current month for default start date
 
-  useEffect(() => {
-    const fetchExpenses = async () => {
-      try {
-        const data = await getUserExpenses()
-        setExpenseData(data)
-      } catch (error) {
-        console.error("Failed to fetch expenses:", error)
-      } finally {
-        setIsLoading(false)
-      }
+ const today = new Date()
+
+ const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+
+ const [startDate, setStartDate] = useState<Date | undefined>(firstDayOfMonth)
+
+ const [endDate, setEndDate] = useState<Date | undefined>(today)
+
+ const [isRefreshing, setIsRefreshing] = useState(false)
+
+
+
+  const fetchExpenses = async (start?: Date, end?: Date) => {
+
+    try {
+
+      setIsRefreshing(true)
+
+
+
+      // If dates are provided, format them as YYYY-MM-DD
+
+      const startDateParam = start ? format(start, "yyyy-MM-dd") : undefined
+
+      const endDateParam = end ? format(end, "yyyy-MM-dd") : undefined
+
+
+
+    
+      if (startDateParam && endDateParam) {
+
+          const data = await getUserExpenses(startDate, endDate);
+          setExpenseData(data)
+      }else{
+
+      toast.warning('Please select both a start date and an end date .', {
+        style: { backgroundColor: '#f59e0b', color: '#fff' }, // Custom background and text color
+      });
+
+      } 
+
+    } catch (error) {
+
+      console.error("Failed to fetch expenses:", error)
+
+    } finally {
+
+      setIsLoading(false)
+
+      setIsRefreshing(false)
+
     }
 
-    fetchExpenses()
+  }
+
+
+  useEffect(() => {
+
+    fetchExpenses(startDate, endDate)
+
   }, [])
+
+  const handleDateFilterApply = () => {
+    fetchExpenses(startDate, endDate)
+  }
 
   const handleAddExpense = (expense: Expense) => {
     setExpenseData((prev) => ({
@@ -49,6 +104,7 @@ export default function DashboardPage() {
       expenses: [expense, ...prev.expenses],
     }))
     setDialogOpen(false)
+    fetchExpenses(startDate, endDate)
   }
 
   const handleDeleteExpense = (id: string) => {
@@ -89,6 +145,95 @@ export default function DashboardPage() {
           </Button>
         </div>
       </DashboardHeader>
+        {/* Date Range Filter */}
+
+        <Card className="mb-6 border-violet-100 dark:border-violet-800/30 shadow-sm">
+
+<CardHeader className="pb-3">
+
+  <CardTitle className="text-sm font-medium flex items-center">
+
+    <Calendar className="h-4 w-4 mr-2 text-violet-600" />
+
+    Date Range Filter
+
+  </CardTitle>
+
+</CardHeader>
+
+<CardContent>
+
+  <div className="flex flex-col sm:flex-row gap-4 items-end">
+
+    <div className="grid gap-2 flex-1">
+
+      <label htmlFor="start-date" className="text-sm font-medium">
+
+        Start Date
+
+      </label>
+
+      <DatePicker id="start-date" date={startDate} setDate={setStartDate} className="w-full"  />
+
+    </div>
+
+    <div className="grid gap-2 flex-1">
+
+      <label htmlFor="end-date" className="text-sm font-medium">
+
+        End Date
+
+      </label>
+
+      <DatePicker id="end-date" date={endDate} setDate={setEndDate} className="w-full"  minDate={startDate} />
+
+    </div>
+
+    <Button
+
+      onClick={handleDateFilterApply}
+
+      disabled={isRefreshing}
+
+      className="rounded-lg bg-violet-600 hover:bg-violet-700 transition-all duration-300"
+
+    >
+
+      {isRefreshing ? (
+
+        <>
+
+          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+
+          Refreshing...
+
+        </>
+
+      ) : (
+
+        "Apply Filter"
+
+      )}
+
+    </Button>
+
+  </div>
+
+  {startDate && endDate && (
+
+    <p className="text-xs text-muted-foreground mt-2">
+
+      Showing transactions from {format(startDate, "MMMM d, yyyy")} to {format(endDate, "MMMM d, yyyy")}
+
+    </p>
+
+  )}
+
+</CardContent>
+
+</Card>
+
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
           <Card className="border-violet-100 dark:border-violet-800/30 shadow-md hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300">
@@ -102,7 +247,8 @@ export default function DashboardPage() {
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
               ₹{expenseData.income.toFixed(2)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">All time income</p>
+
+              <p className="text-xs text-muted-foreground mt-1">  {startDate && endDate ? `Income in selected period` : "All time income"}</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -120,7 +266,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600 dark:text-red-400">₹{expenseData.expense.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-1">All time expenses</p>
+              <p className="text-xs text-muted-foreground mt-1"> {startDate && endDate ? `Expenses in selected period` : "All time expenses"}</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -142,7 +288,7 @@ export default function DashboardPage() {
               >
                 ₹{balance.toFixed(2)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Current balance</p>
+              <p className="text-xs text-muted-foreground mt-1"> {startDate && endDate ? `Balance in selected period` : "Current balance"}</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -160,7 +306,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{expenseData.expenses.length}</div>
-              <p className="text-xs text-muted-foreground mt-1">Total transactions</p>
+              <p className="text-xs text-muted-foreground mt-1">{startDate && endDate ? `Transactions in selected period` : "Total transactions"}</p>
             </CardContent>
           </Card>
         </motion.div>

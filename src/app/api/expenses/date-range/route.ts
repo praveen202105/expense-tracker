@@ -23,6 +23,8 @@ export async function GET(req: NextRequest) {
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
         return NextResponse.json({ error: 'Invalid date format' }, { status: 400 });
     }
+    endDate.setHours(23, 59, 59, 999);
+
 
     const expenses = await Expense.find({
         userId,
