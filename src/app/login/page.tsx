@@ -1,5 +1,9 @@
 "use client"
-
+interface DecodedToken {
+  name: string;
+  email: string;
+  picture: string;
+}
 import type React from "react"
 import axios from "axios";
 import { useState } from "react"
@@ -73,12 +77,7 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-  interface DecodedToken {
-    name: string;
-    email: string;
-    picture: string;
-    // Add other properties if needed
-  }
+
   const handleGoogleLogin = async (response: CredentialResponse) => {
     setGoogleLoading(true);
     setError(null);
@@ -86,10 +85,10 @@ export default function LoginPage() {
     try {
       if (response.credential) {
         const credential = response.credential;
-        console.log("Google Login Success", credential);
+        // console.log("Google Login Success", credential);
   
         const decoded: DecodedToken = jwtDecode<DecodedToken>(credential);
-        console.log("Decoded User Info:", decoded);
+        // console.log("Decoded User Info:", decoded);
   
         const userProfile = {
           name: decoded.name,
@@ -238,7 +237,11 @@ return (
               </div>
             </div>
             
-
+            {googleLoading ? (
+              <Button disabled variant="outline" className="w-full">
+                Signing in with Google...
+              </Button>
+            ) : (
             <GoogleLogin
                 onSuccess={handleGoogleLogin}
                 onError={() => setError("Google Sign-In Failed")}
@@ -247,6 +250,7 @@ return (
                 shape="circle"
                 logo_alignment="left"
               />
+            )}
             
             {error && <p className="mt-4 text-sm text-red-500 text-center">{error}</p>}
           </CardFooter>
